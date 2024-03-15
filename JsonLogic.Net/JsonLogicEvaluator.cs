@@ -8,24 +8,35 @@ namespace JsonLogic.Net
 {
     public class JsonLogicEvaluator : IProcessJsonLogic
     {
-        private IManageOperators operations;
+        private readonly IManageOperators _operations;
 
         public JsonLogicEvaluator(IManageOperators operations)
         {
-            this.operations = operations;
+            _operations = operations;
         }
 
         public object Apply(JToken rule, object data)
         {
-            if (rule is null) return null;
-            if (rule is JValue) return AdjustType((rule as JValue).Value);
-            if (rule is JArray) return (rule as JArray).Select(r => Apply(r, data)).ToArray();
+            if (rule is null)
+            {
+                return null;
+            }
+
+            if (rule is JValue jValue)
+            {
+                return AdjustType(jValue.Value);
+            }
+
+            if (rule is JArray jArray)
+            {
+                return jArray.Select(r => Apply(r, data)).ToArray();
+            }
 
             var ruleObj = (JObject) rule;
             var p = ruleObj.Properties().First();
             var opName = p.Name;
-            var opArgs = (p.Value is JArray) ? (p.Value as JArray).ToArray() : new JToken[] { p.Value };
-            var op = operations.GetOperator(opName);
+            var opArgs = p.Value is JArray pjArray ? pjArray.ToArray() : new[] { p.Value };
+            var op = _operations.GetOperator(opName);
             return op(this, opArgs, data);
         }
 
