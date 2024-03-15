@@ -64,7 +64,7 @@ namespace JsonLogic.Net
 
         public static bool IsNumeric(this object value)
         {
-            return (value is short || value is int || value is long || value is decimal || value is float || value is double);
+            return value is byte || value is sbyte || value is short || value is ushort || value is int  || value is uint || value is long || value is decimal || value is float || value is double;
         }
 
         public static bool IsTruthy(this object value)
