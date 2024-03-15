@@ -6,6 +6,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonLogic.Net", "JsonLogic.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonLogic.Net.UnitTests", "JsonLogic.Net.UnitTests\JsonLogic.Net.UnitTests.csproj", "{054C0FF9-016C-4DB3-A607-DDFB0745866C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonLogic.Net.Benchmarks", "JsonLogic.Net.Benchmarks\JsonLogic.Net.Benchmarks.csproj", "{2DAF59F5-57D1-4CAA-A136-58236FEF6000}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,18 @@ Global
 		{054C0FF9-016C-4DB3-A607-DDFB0745866C}.Release|x64.Build.0 = Release|Any CPU
 		{054C0FF9-016C-4DB3-A607-DDFB0745866C}.Release|x86.ActiveCfg = Release|Any CPU
 		{054C0FF9-016C-4DB3-A607-DDFB0745866C}.Release|x86.Build.0 = Release|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Debug|x64.Build.0 = Debug|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Debug|x86.Build.0 = Debug|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Release|x64.ActiveCfg = Release|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Release|x64.Build.0 = Release|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Release|x86.ActiveCfg = Release|Any CPU
+		{2DAF59F5-57D1-4CAA-A136-58236FEF6000}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
