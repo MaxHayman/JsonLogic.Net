@@ -1,12 +1,12 @@
 using System;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace JsonLogic.Net {
-    public interface IManageOperators 
+    public interface IManageOperators
     {
-        void AddOperator(string name, Func<IProcessJsonLogic, JToken[], object, object> operation);
+        void AddOperator(string name, Func<IProcessJsonLogic, JsonNode[], object, object> operation);
 
-        Func<IProcessJsonLogic, JToken[], object, object> GetOperator(string name);
+        Func<IProcessJsonLogic, JsonNode[], object, object> GetOperator(string name);
 
         void DeleteOperator(string name);
     }

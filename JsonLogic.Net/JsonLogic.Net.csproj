@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0;netstandard1.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <LangVersion>8.0</LangVersion>
     <Version>1.1.11</Version>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Copyright>Copyright 2018</Copyright>
@@ -15,7 +17,7 @@
     <Authors>Yavuz Tor</Authors>
     <Description>A .Net implementation of [JsonLogic](http://jsonlogic.com).</Description>
     <Summary>JsonLogic defines a set of operators and rules to form a json definition of an expression, which can be evaluated against a data object. This helps serializing specification logic into client-side or to a back-end storage. It also helps to evaluate the same expression using different languages.</Summary>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>    
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -23,14 +25,21 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="9.*" />
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="publicKey.snk" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
   </ItemGroup>
 </Project>

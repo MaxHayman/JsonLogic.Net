@@ -1,11 +1,9 @@
-using System;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace JsonLogic.Net
 {
-    public interface IProcessJsonLogic 
+    public interface IProcessJsonLogic
     {
-        object Apply(JToken rule, object data);
+        object Apply(JsonNode rule, object data);
     }
 }

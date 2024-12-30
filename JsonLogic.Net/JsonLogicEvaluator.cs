@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace JsonLogic.Net
 {
@@ -15,27 +13,33 @@ namespace JsonLogic.Net
             _operations = operations;
         }
 
-        public object Apply(JToken rule, object data)
+        public object Apply(JsonNode? rule, object data)
         {
             if (rule is null)
             {
                 return null;
             }
 
-            if (rule is JValue jValue)
+            if (rule is JsonValue jsonValue)
             {
-                return AdjustType(jValue.Value);
+                return AdjustType(jsonValue.GetValue<object>());
             }
 
-            if (rule is JArray jArray)
+            if (rule is JsonArray jsonArray)
             {
-                return jArray.Select(r => Apply(r, data)).ToArray();
+                return jsonArray.Select(r => Apply(r, data)).ToArray();
             }
 
-            var ruleObj = (JObject) rule;
-            var p = ruleObj.Properties().First();
-            var opName = p.Name;
-            var opArgs = p.Value is JArray pjArray ? pjArray.ToArray() : new[] { p.Value };
+            var ruleObj = rule as JsonObject;
+
+            if (ruleObj == null || !ruleObj.Any())
+            {
+                return null;
+            }
+
+            var p = ruleObj.First();
+            var opName = p.Key;
+            var opArgs = p.Value is JsonArray jsonArrayArgs ? jsonArrayArgs.ToArray() : new[] { p.Value };
             var op = _operations.GetOperator(opName);
             return op(this, opArgs, data);
         }
