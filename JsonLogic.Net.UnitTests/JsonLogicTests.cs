@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Text.Json.Nodes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -148,9 +149,9 @@ namespace JsonLogic.Net.UnitTests
         [InlineData("{`in`: [`Spring`, `Springfield`]}", true)]
         [InlineData("{`in`: [`Springs`, `Springfield`]}", false)]
         [InlineData("{`in`: [`spring`, `Springfield`]}", false)]
-        
+
         [InlineData("{`in`:[`/homePage`,{`var`:`page.url`}]}", false)]
-        
+
         [InlineData("{`cat`: [`spring`, `field`]}", "springfield")]
         [InlineData("{`substr`: [`springfield`, 6]}", "field")]
         [InlineData("{`substr`: [`springfield`, 6, 3]}", "fie")]
@@ -222,7 +223,7 @@ namespace JsonLogic.Net.UnitTests
         {
             // Arrange
             string jsonText = "{\">\": [{\"var\": \"MyNumber\"}, 3]}";
-            var rule = JObject.Parse(jsonText);
+            var rule = JsonNode.Parse(jsonText);
             object localData = new {MyNumber = 8};
             var evaluator = new JsonLogicEvaluator(EvaluateOperators.Default);
 
@@ -242,7 +243,7 @@ namespace JsonLogic.Net.UnitTests
             string ruleJson = "{`in`:[{`var`:`marital_status`},[`Single`,`Married`,`Divorced`,`Widowed`,`Separated`]]}"
                 .Replace('`', '"');
             string dataJson = "{`marital_status`: `Divorced`}".Replace('`', '"');
-            var rule = JObject.Parse(ruleJson);
+            var rule = JsonNode.Parse(ruleJson);
             var localData = JObject.Parse(dataJson);
             var evaluator = new JsonLogicEvaluator(EvaluateOperators.Default);
 
@@ -264,7 +265,7 @@ namespace JsonLogic.Net.UnitTests
                 "{ `and` : [  {`<` : [ { `var` : `temp` }, 110 ]},  {`==` : [ { `var` : `pie.filling` }, `apple` ] }] }"
                     .Replace('`', '"');
             var evaluator = new JsonLogicEvaluator(EvaluateOperators.Default);
-            var rule = JObject.Parse(ruleJson);
+            var rule = JsonNode.Parse(ruleJson);
             var localData = JObject.Parse(dataJson);
 
             _output.WriteLine($"{MethodBase.GetCurrentMethod().Name}() Testing {rule} against {localData}");
@@ -277,11 +278,11 @@ namespace JsonLogic.Net.UnitTests
         }
 
         [Theory]
-        [InlineData("{`filter`:[{`var`:`parentArray`},{`and`:[{`===`:[{`var`:`childItem`},`c`]},{`filter`:[{`var`:`childArray`},{`===`:[{`var`:``},5]}]}]}]}", 
-            "{`parentArray`:[{`childArray`:[1,2,3,4,5],`childItem`:`a`},{`childArray`:[4,5],`childItem`:`b`},{`childArray`:[5,6,7,8],`childItem`:`c`}]}", 
+        [InlineData("{`filter`:[{`var`:`parentArray`},{`and`:[{`===`:[{`var`:`childItem`},`c`]},{`filter`:[{`var`:`childArray`},{`===`:[{`var`:``},5]}]}]}]}",
+            "{`parentArray`:[{`childArray`:[1,2,3,4,5],`childItem`:`a`},{`childArray`:[4,5],`childItem`:`b`},{`childArray`:[5,6,7,8],`childItem`:`c`}]}",
             "[{`childArray`:[5,6,7,8],`childItem`:`c`}]")]
-        [InlineData("{`filter`:[{`var`:`parentNonExistentArray`},{`and`:[{`===`:[{`var`:`childItem`},`c`]},{`filter`:[{`var`:`childArray`},{`===`:[{`var`:``},5]}]}]}]}", 
-            "{`parentArray`:[{`childArray`:[1,2,3,4,5],`childItem`:`a`},{`childArray`:[4,5],`childItem`:`b`},{`childArray`:[5,6,7,8],`childItem`:`c`}]}", 
+        [InlineData("{`filter`:[{`var`:`parentNonExistentArray`},{`and`:[{`===`:[{`var`:`childItem`},`c`]},{`filter`:[{`var`:`childArray`},{`===`:[{`var`:``},5]}]}]}]}",
+            "{`parentArray`:[{`childArray`:[1,2,3,4,5],`childItem`:`a`},{`childArray`:[4,5],`childItem`:`b`},{`childArray`:[5,6,7,8],`childItem`:`c`}]}",
             "null")]
         public void NestedFilterVariableAccess(string ruleJson, string dataJson, string expectedJson)
         {
@@ -375,14 +376,14 @@ namespace JsonLogic.Net.UnitTests
 
         [Theory]
         // Null first parameter
-        [InlineData("{`local`:[null, {`var`:[`root.child.2`]}]}", 
-            "{`root`: {`child`:[0,100,200,300]}}", 
+        [InlineData("{`local`:[null, {`var`:[`root.child.2`]}]}",
+            "{`root`: {`child`:[0,100,200,300]}}",
             null)]
-        [InlineData("{`local`:[{`var`:``}, {`var`:[`root.child.2`]}]}", 
-            "{`root`: {`child`:[0,100,200,300]}}", 
+        [InlineData("{`local`:[{`var`:``}, {`var`:[`root.child.2`]}]}",
+            "{`root`: {`child`:[0,100,200,300]}}",
             200.0)]
-        [InlineData("{`local`:[{`var`:`root`}, {`var`:[`root.child.2`]}]}", 
-            "{`root`: {`child`:[0,100,200,300]}}", 
+        [InlineData("{`local`:[{`var`:`root`}, {`var`:[`root.child.2`]}]}",
+            "{`root`: {`child`:[0,100,200,300]}}",
             null)]
         // Null parameters
         [InlineData("{`local`:[]}",
@@ -397,16 +398,16 @@ namespace JsonLogic.Net.UnitTests
             "{`root`: {`child`:[0,100,200,300]}}",
             "{`child`:[0,100,200,300]}")]
         // Simple local filter on complex object
-        [InlineData("{`local`:[{`var`:`root`}, {`var`:[`child.3`]}]}", 
-            "{`root`: {`child`:[0,100,200,300]}}", 
+        [InlineData("{`local`:[{`var`:`root`}, {`var`:[`child.3`]}]}",
+            "{`root`: {`child`:[0,100,200,300]}}",
             300.0)]
         // Filter array and get second element
-        [InlineData("{`local`:[{`filter`:[{`var`:`root.child`},{`>`:[{`var`:``},10]}]},{`var`:[1]}]}", 
-            "{`root`: {`child`:[0,100,200,300]}}", 
+        [InlineData("{`local`:[{`filter`:[{`var`:`root.child`},{`>`:[{`var`:``},10]}]},{`var`:[1]}]}",
+            "{`root`: {`child`:[0,100,200,300]}}",
             200.0)]
         // Filter array of objects and get value of property of first match
         [InlineData("{`local`:[{`filter`:[{`var`:`root.child1`},{`===`:[{`var`:`prop1`},`prop1 value 2`]}]},{`var`:[`0.prop2`]}]}",
-            "{`root`:{`child1`:[{`prop1`:`prop1 value 1`,`prop2`:`prop2 value 1`},{`prop1`:`prop1 value 2`,`prop2`:`prop2 value 2`}],`child2`:42}}", 
+            "{`root`:{`child1`:[{`prop1`:`prop1 value 1`,`prop2`:`prop2 value 1`},{`prop1`:`prop1 value 2`,`prop2`:`prop2 value 2`}],`child2`:42}}",
             "prop2 value 2")]
         // Filter array of objects and try to obtain property when no match found
         [InlineData("{`local`:[{`filter`:[{`var`:`root.child1`},{`===`:[{`var`:`prop1`},`prop1 value 3`]}]},{`var`:[`0.prop2`]}]}",
@@ -421,10 +422,10 @@ namespace JsonLogic.Net.UnitTests
             _output.WriteLine($"{MethodBase.GetCurrentMethod().Name}() Testing {rule} against {localData}");
             // Act
             var actualResult = jsonLogic.Apply(rule, localData);
-            if (actualResult is JToken)
+            if (actualResult is JsonNode)
                 // use json comparison
                 expectedResult = expectedResult == null
-                    ? JValue.CreateNull()
+                    ? JsonValue.Create((object)null)
                     : JsonFrom(expectedResult.ToString());
             Assert.Equal(expectedResult, actualResult);
         }
@@ -455,10 +456,10 @@ namespace JsonLogic.Net.UnitTests
         {
             var evaluator = new JsonLogicEvaluator(EvaluateOperators.Default);
 
-            var rule = JObject.Parse(@"{""" + op + @""": [{""var"": ""missingField""}, 1000]}");
+            var rule = JsonNode.Parse(@"{""" + op + @""": [{""var"": ""missingField""}, 1000]}");
 
             var result = evaluator.Apply(rule, Data).IsTruthy();
-            
+
             Assert.Equal(expectedResult, result);
         }
 
@@ -485,7 +486,7 @@ namespace JsonLogic.Net.UnitTests
                 }
             ]".Replace('`', '"'));
 
-            var rules = JObject.Parse(@"{
+            var rules = JsonNode.Parse(@"{
                 `filter`: [
                     { `var`: `` },
                     {
@@ -519,16 +520,12 @@ namespace JsonLogic.Net.UnitTests
 
         }
 
-        private object GetDataObject(JToken token)
+        private object GetDataObject(JsonNode token)
         {
-            if (token is JValue) return CastPrimitive((token as JValue).Value);
-            if (token is JArray) return (token as JArray).Select(t => GetDataObject(t)).ToArray();
-            if (token is JObject)
-                return (token as JObject).Properties().Aggregate(new Dictionary<string, object>(), (d, p) =>
-                {
-                    d.Add(p.Name, GetDataObject(p.Value));
-                    return d;
-                });
+            if (token is JsonValue jsonValue) return CastPrimitive(jsonValue.GetValue<object>());
+            if (token is JsonArray jsonArray) return jsonArray.Select(t => GetDataObject(t)).ToArray();
+            if (token is JsonObject jsonObject)
+                return jsonObject.ToDictionary(kvp => kvp.Key, kvp => GetDataObject(kvp.Value));
             throw new Exception("GetDataObject cannot handle token " + token.ToString());
         }
 
@@ -547,9 +544,9 @@ namespace JsonLogic.Net.UnitTests
             throw new Exception("Cannot get value of this token: " + token.ToString(Formatting.None));
         }
 
-        public static JToken JsonFrom(string input)
+        public static JsonNode JsonFrom(string input)
         {
-            return JToken.Parse(input.Replace('`', '"'));
+            return JsonNode.Parse(input.Replace('`', '"'));
         }
 
         public static object Dynamic(Action<dynamic> ctor)
