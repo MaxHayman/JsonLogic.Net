@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace JsonLogic.Net
@@ -22,7 +23,7 @@ namespace JsonLogic.Net
 
             if (rule is JsonValue jsonValue)
             {
-                return AdjustType(jsonValue.GetValue<object>());
+                return AdjustType(jsonValue.GetValue<JsonElement>());
             }
 
             if (rule is JsonArray jsonArray)
@@ -44,9 +45,21 @@ namespace JsonLogic.Net
             return op(this, opArgs, data);
         }
 
-        private object AdjustType(object value)
+        private object? AdjustType(JsonElement jsonElement)
         {
-            return value.IsNumeric() ? Convert.ToDouble(value) : value;
+            switch (jsonElement.ValueKind)
+            {
+                case JsonValueKind.Number:
+                    return jsonElement.GetDouble();
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    return jsonElement.GetBoolean();
+                case JsonValueKind.Null:
+                    return null;
+                case JsonValueKind.String:
+                default:
+                    return jsonElement.GetString();
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace JsonLogic.Net
@@ -53,6 +54,7 @@ namespace JsonLogic.Net
                 try
                 {
                     return Convert.ToDouble(prev ?? 0d) + Convert.ToDouble(next);
+                    //return ConvertToDouble(prev ?? 0d) + ConvertToDouble(next);
                 }
                 catch
                 {
@@ -93,13 +95,18 @@ namespace JsonLogic.Net
                 {
                     var result = GetValueByName(data, names.ToString());
                     // This will return JValue or null if missing. Actual value of null will be wrapped in JToken with value null
-                    if (result == null && args.Count() == 2)
+                    if (result != null && result.Value.Value is JsonValue jValue)
+                    {
+                        // permit correct type wrangling to occur (AdjustType) without duplicating code
+                        result = new ValueWrapper() { Value = p.Apply(jValue, null) };
+                    }
+                    else if (result == null && args.Count() == 2)
                     {
                         object defaultValue = p.Apply(args.Last(), data);
-                        result = defaultValue;
+                        result = new ValueWrapper() { Value = defaultValue };
                     }
 
-                    return result;
+                    return result?.Value;
                 }
                 catch
                 {
@@ -268,42 +275,62 @@ namespace JsonLogic.Net
             });
         }
 
-        private object GetValueByName(object data, string namePath)
+        private struct ValueWrapper
         {
-            if (string.IsNullOrEmpty(namePath)) return data;
+            public object? Value { get; set; }
+        }
+        private ValueWrapper? GetValueByName(object data, string namePath)
+        {
+            if (string.IsNullOrEmpty(namePath)) return new ValueWrapper {Value = data};
 
             if (data == null) throw new ArgumentNullException(nameof(data));
 
             string[] names = namePath.Split('.');
-            object d = data;
+            ValueWrapper d = new ValueWrapper { Value = data };
             foreach (string name in names)
             {
-                if (d == null) return null;
+                if (d.Value == null) return null;
                 if (d.GetType().IsArray)
                 {
-                    d = (d as Array).GetValue(int.Parse(name));
-                }
-                else if (DictionaryType(d) != null)
-                {
-                    var type = DictionaryType(d);
-                    var prop = type.GetTypeInfo().DeclaredProperties.FirstOrDefault(p => p.Name == "Item");
-                    d = prop.GetValue(d, new object[]{ name });
-                }
-                else if (d is IEnumerable<object>)
-                {
-                    d = (d as IEnumerable<object>).Skip(int.Parse(name)).First();
+                    d.Value = (d.Value as Array).GetValue(int.Parse(name));
                 }
                 else
                 {
-                    var property = d.GetType().GetTypeInfo().GetDeclaredProperty(name);
-                    if (property == null) throw new Exception();
-                    d = property.GetValue(d);
+                    var dictionaryType = DictionaryType(d.Value);
+                    if (dictionaryType != null)
+                    {
+                        var dictionary = d.Value as IDictionary<string, JsonNode>;
+
+                        if (dictionary is null || !dictionary.TryGetValue(name, out var value))
+                        {
+                            return null;
+                        }
+
+                        if (value is null)
+                        {
+                            d = new ValueWrapper { Value = null };
+                        }
+                        else
+                        {
+                            d.Value = value.GetValue<object>();
+                        }
+                    }
+                    else if (d.Value is IEnumerable<object>)
+                    {
+                        d.Value = (d.Value as IEnumerable<object>).Skip(int.Parse(name)).First();
+                    }
+                    else
+                    {
+                        var property = d.GetType().GetTypeInfo().GetDeclaredProperty(name);
+                        if (property == null) throw new Exception();
+                        d.Value = property.GetValue(d.Value);
+                    }
                 }
             }
-            return d;
+            return new ValueWrapper { Value = d };
         }
 
-        private Type DictionaryType(object d)
+        private Type? DictionaryType(object d)
         {
             return d.GetType().GetTypeInfo().ImplementedInterfaces.FirstOrDefault(t => t.GetTypeInfo().IsGenericType && t.GetGenericTypeDefinition() == typeof(IDictionary<,>));
         }
@@ -340,6 +367,10 @@ namespace JsonLogic.Net
         private static Func<IProcessJsonLogic, JsonNode[], object, object> ReduceDoubleArgs(double defaultValue, Func<double, double, double> reducer)
         {
             return (p, args, data) => Min2From(args.Select(a => p.Apply(a, data))).Select(a => a == null ? defaultValue : Convert.ToDouble(a)).Aggregate(reducer);
+
+            // return (p, args, data) => Min2From(args.Select(a => p.Apply(a, data)))
+            //     .Select(a => a == null ? defaultValue : ConvertToDouble(a))
+            //     .Aggregate(reducer);
         }
 
         private static IEnumerable<object> Min2From(IEnumerable<object> source)
@@ -349,5 +380,19 @@ namespace JsonLogic.Net
 
             return new object[]{ null, count == 0 ? null : source.First() };
         }
+
+        // private static double ConvertToDouble(object value)
+        // {
+        //     if (value is JsonElement jsonElement)
+        //     {
+        //         if (jsonElement.TryGetDouble(out double result))
+        //         {
+        //             return result;
+        //         }
+        //         throw new InvalidCastException($"Unable to cast JsonElement to double: {jsonElement}");
+        //     }
+        //
+        //     return Convert.ToDouble(value);
+        // }
     }
 }
